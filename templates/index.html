@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Compression App</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul class="navbar">
+                <li><a href="#" data-algorithm="huffman" class="algorithm-link">Huffman</a></li>
+                <li><a href="#" data-algorithm="arithmetic" class="algorithm-link">Arithmetic</a></li>
+                <li><a href="#" data-algorithm="rle" class="algorithm-link">Run-Length Encoding</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Text Compression and Decompression</h1>
+        <form id="compression-form">
+            <label for="text">Enter Text:</label>
+            <textarea id="text" name="text" rows="5" placeholder="Enter your text here..."></textarea>
+
+            <button type="button" id="compress-btn">Compress</button>
+        </form>
+
+        <div id="results">
+            <h2>Results</h2>
+            <div id="compressed-result"></div>
+            <div id="decompressed-result"></div>
+        </div>
+    </div>
+
+    <script>
+        let selectedAlgorithm = "huffman"; 
+
+        document.querySelectorAll('.algorithm-link').forEach(link => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                selectedAlgorithm = event.target.dataset.algorithm;
+
+                document.querySelectorAll('.algorithm-link').forEach(lnk => lnk.classList.remove('active'));
+                event.target.classList.add('active');
+            });
+        });
+
+        document.getElementById('compress-btn').addEventListener('click', async () => {
+            const text = document.getElementById('text').value;
+
+            const response = await fetch('/compress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ text, algorithm: selectedAlgorithm })
+            });
+
+            const result = await response.json();
+            const compressedDiv = document.getElementById('compressed-result');
+
+            if (response.ok) {
+                compressedDiv.innerHTML = `<strong>Compressed Output:</strong> ${result.compressed}`;
+                if (result.tree) {
+                    compressedDiv.innerHTML += `<br/><strong>Huffman Tree:</strong> ${result.tree}`;
+                }
+            } else {
+                compressedDiv.innerHTML = `<strong>Error:</strong> ${result.error}`;
+            }
+        });
+    </script>
+</body>
+</html>
